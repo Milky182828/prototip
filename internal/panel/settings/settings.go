@@ -48,9 +48,13 @@ const (
 	KeyAnnounceURL = "sub_announce_url"
 	// App branding: the brand, logo and accent colour go to the apps that read operator
 	// headers (subs.OperatorHeaders); off by default.
-	KeyAppBranding = "app_branding"
-	KeyBrandAccent = "brand_accent"   // #RRGGBB, empty: the app's own
-	KeyBrandLogo   = "brand_logo_url" // https, empty: the app's own
+	KeyAppBranding    = "app_branding"
+	KeyBrandAccent    = "brand_accent"   // #RRGGBB, empty: the app's own
+	KeyBrandLogo      = "brand_logo_url" // https, empty: the app's own
+	KeyMTProtoEnabled = "mtproto_enabled"
+	KeyMTProtoPort    = "mtproto_port"
+	KeyMTProtoDomain  = "mtproto_domain"
+	KeyMTProtoSecret  = "mtproto_secret"
 	// KeyLegacySubPath is the path of the subscription links of the panel users were
 	// imported from: "sub" for Marzban and PasarGuard, "api/sub" for Remnawave. The old
 	// tokens lead to the users (legacy_sub_tokens); empty: off.

@@ -7,25 +7,16 @@
   --font-display-stack: "Unbounded Variable", "Onest Variable", system-ui, sans-serif;
   --font-ui-stack: "Onest Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono-stack: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
-  --bg: #02080a;
-  --ink-900: #eafcfc; --ink-800: #d9f2f4; --ink-700: #c3dde0; --ink-600: #a9c9cd;
-  --fill: #22e6dc; --on-fill: #021214; --on-danger: #021214;
-  --code-bg: #041015; --code-fg: #eafcfc;
-  --ink-500: #8bb0b6; --ink-400: #6f949a; --ink-300: #3a5660; --ink-200: #1b3a44;
-  --ink-100: #0a3038; --ink-50: #071a20;
-  --prototip-50: #031b20; --prototip-100: #06323a; --prototip-200: #0a5660; --prototip-400: #20bfc0;
-  --prototip-500: #22e6dc; --prototip-600: #14b8b0; --prototip-700: #8ff8f3;
-  --leaf-50: #082d27; --leaf-500: #4ed7a0; --leaf-700: #8aefc4;
-  --lagoon-50: #061f30; --lagoon-400: #4aa8ff; --lagoon-500: #2b8cff; --lagoon-600: #72b6ff;
-  --honey-50: #332b13; --honey-500: #ffd166; --honey-600: #ffe09a;
-  --berry-50: #35191d; --berry-600: #ff7b82;
-  --surface: rgba(5,18,22,.90); --surface-soft: rgba(4,20,26,.72); --surface-hover: rgba(10,48,56,.94);
-  --surface-solid: #051216; --glass: rgba(5,18,22,.72); --glass-strong: rgba(5,18,22,.94);
-  --glass-highlight: rgba(34,230,220,.10); --glass-edge: rgba(34,230,220,.20);
-  --hairline: rgba(195,221,224,.12); --hover: rgba(34,230,220,.07);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.28); --shadow-md: 0 12px 32px -14px rgba(0,0,0,.60); --shadow-lg: 0 32px 64px -24px rgba(0,0,0,.72);
-  --r-md: 12px; --r-lg: 20px; --r-xl: 24px;
-  --ease-out: cubic-bezier(0.22,1,0.36,1); --ease-spring: cubic-bezier(0.3,1.3,0.6,1);
+  --bg:#02080a; --ink-900:#eafcfc; --ink-800:#d9f2f4; --ink-700:#c3dde0; --ink-600:#a9c9cd;
+  --fill:#22e6dc; --on-fill:#021214; --on-danger:#021214; --code-bg:#041015; --code-fg:#eafcfc;
+  --ink-500:#8bb0b6; --ink-400:#6f949a; --ink-300:#3a5660; --ink-200:#1b3a44; --ink-100:#0a3038; --ink-50:#071a20;
+  --prototip-50:#031b20; --prototip-100:#06323a; --prototip-200:#0a5660; --prototip-400:#20bfc0; --prototip-500:#22e6dc; --prototip-600:#14b8b0; --prototip-700:#8ff8f3;
+  --leaf-50:#082d27; --leaf-500:#4ed7a0; --leaf-700:#8aefc4; --lagoon-50:#061f30; --lagoon-400:#4aa8ff; --lagoon-500:#2b8cff; --lagoon-600:#72b6ff;
+  --honey-50:#332b13; --honey-500:#ffd166; --honey-600:#ffe09a; --berry-50:#35191d; --berry-600:#ff7b82;
+  --surface:rgba(5,18,22,.90); --surface-soft:rgba(4,20,26,.72); --surface-hover:rgba(10,48,56,.94); --surface-solid:#051216;
+  --glass:rgba(5,18,22,.72); --glass-strong:rgba(5,18,22,.94); --glass-highlight:rgba(34,230,220,.10); --glass-edge:rgba(34,230,220,.20);
+  --hairline:rgba(195,221,224,.12); --hover:rgba(34,230,220,.07); --shadow-sm:0 1px 2px rgba(0,0,0,.28); --shadow-md:0 12px 32px -14px rgba(0,0,0,.60); --shadow-lg:0 32px 64px -24px rgba(0,0,0,.72);
+  --r-md:12px; --r-lg:20px; --r-xl:24px; --ease-out:cubic-bezier(.22,1,.36,1); --ease-spring:cubic-bezier(.3,1.3,.6,1);
 }
 
 @theme inline {

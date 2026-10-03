@@ -3,7 +3,7 @@
 //
 //	prototip-release keygen -out release-signing.pem
 //	RELEASE_SIGNING_KEY="$(cat key.pem)" prototip-release manifest -version 0.3.9 \
-//	    -image ghcr.io/miroshka000/prototip -digest sha256:… \
+//	    -image ghcr.io/milky182828/prototip -digest sha256:… \
 //	    -asset x86_64=dist/prototip-x86_64 -asset aarch64=dist/prototip-aarch64 \
 //	    -min-installer-file .github/min-installer -out dist
 //	prototip-release verify dist/manifest.json
@@ -123,7 +123,7 @@ func makeManifest(args []string) error {
 	version := fs.String("version", "", "release version, e.g. 0.5.0.1")
 	minInstaller := fs.String("min-installer", "", "minimum host installer version, only for a release that cannot run with an older one")
 	minInstallerFile := fs.String("min-installer-file", "", "file with the minimum installer version (# comments allowed); a missing file asks for none")
-	image := fs.String("image", "", "image repository, e.g. ghcr.io/miroshka000/prototip")
+	image := fs.String("image", "", "image repository, e.g. ghcr.io/milky182828/prototip")
 	digest := fs.String("digest", "", "sha256 digest of the pushed multi-arch image")
 	changelog := fs.String("changelog", "CHANGELOG.md", "where the release notes are")
 	out := fs.String("out", "dist", "output directory")

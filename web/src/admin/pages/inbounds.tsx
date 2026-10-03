@@ -1,15 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
-import { useMemo, useState } from "react";
-import { api, errorText, unwrap, type Inbound, type Schemas } from "../../api/client";
-import { qk, useInbounds, useNodes } from "../../api/hooks";
+import { Copy, Pencil, Plus, RefreshCw, Send, Trash2, TriangleAlert } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { api, errorText, rawApi, unwrap, type Inbound, type MTProtoView, type Schemas } from "../../api/client";
+import { qk, useInbounds, useMTProto, useNodes } from "../../api/hooks";
 import { Confirm } from "../../components/overlay";
 import { QueryBoundary } from "../../components/query";
 import { useToast } from "../../components/toast";
-import { Button, EmptyState, PageHeader, Pill, Segmented, Skeleton } from "../../components/ui";
+import { Button, EmptyState, Field, PageHeader, Pill, Segmented, Skeleton } from "../../components/ui";
 import { Switch } from "../../components/switch";
 import { t, tMaybe } from "../../i18n";
 import { ago, maskedAs } from "../../lib/format";
+import { useCopy } from "../../lib/copy";
 import { nodeLabel } from "./nodes";
 import { hostPort, listenerError } from "./inbound/shared";
 import { AddDrawer } from "./inbound/add";
@@ -61,6 +62,7 @@ export function InboundsPage() {
         <TriangleAlert size={18} className="shrink-0" aria-hidden />
         <span>{t("inbounds.reconnectWarning")}</span>
       </div>
+      <MTProtoCard />
       {multi && nodes.data ? (
         <div className="mb-4">
           <Segmented
@@ -166,6 +168,90 @@ export function InboundsPage() {
         onConfirm={() => removing && remove.mutate(removing.id)}
       />
     </>
+  );
+}
+
+function MTProtoCard() {
+  const mt = useMTProto();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const copy = useCopy();
+  const [port, setPort] = useState("8443");
+  const [domain, setDomain] = useState("");
+  useEffect(() => {
+    if (!mt.data) return;
+    setPort(String(mt.data.port));
+    setDomain(mt.data.domain);
+  }, [mt.data?.port, mt.data?.domain]);
+  const save = useMutation({
+    mutationFn: (body: { enabled?: boolean; port?: number; domain?: string }) =>
+      rawApi("/api/v1/mtproto", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) as Promise<MTProtoView>,
+    onSuccess: (data) => {
+      qc.setQueryData(qk.mtproto, data);
+      toast.ok(t("inbounds.mtproto.saved"));
+    },
+    onError: (e) => toast.error(errorText(e)),
+  });
+  const regenerate = useMutation({
+    mutationFn: () => rawApi("/api/v1/mtproto/regenerate", { method: "POST" }) as Promise<MTProtoView>,
+    onSuccess: (data) => {
+      qc.setQueryData(qk.mtproto, data);
+      toast.ok(t("inbounds.mtproto.regenerated"));
+    },
+    onError: (e) => toast.error(errorText(e)),
+  });
+  if (mt.isPending || !mt.data) return <Skeleton className="mb-4 block" style={{ height: 220, borderRadius: 20 }} />;
+  const data = mt.data;
+  const tone = data.status === "running" ? "ok" : data.status === "error" ? "bad" : data.enabled ? "warn" : "off";
+  return (
+    <section className="card glass mb-4 reveal">
+      <div className="card-head">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="card-title">{t("inbounds.mtproto.title")}</h2>
+            <Pill tone={tone}>{t(`inbounds.mtproto.status.${data.status}`)}</Pill>
+          </div>
+          <div className="card-sub">{t("inbounds.mtproto.subtitle")}</div>
+        </div>
+        <Switch
+          checked={data.enabled}
+          label={t("inbounds.mtproto.enabled")}
+          disabled={save.isPending}
+          onChange={(enabled) => save.mutate({ enabled, port: Number(port), domain })}
+        />
+      </div>
+      <div className="grid gap-3 md:grid-cols-[160px_1fr]">
+        <Field label={t("inbounds.mtproto.port")} htmlFor="mtproto-port">
+          <input id="mtproto-port" className="input" inputMode="numeric" value={port} onChange={(e) => setPort(e.target.value.replace(/\D/g, "").slice(0, 5))} />
+        </Field>
+        <Field label={t("inbounds.mtproto.domain")} htmlFor="mtproto-domain" hint={t("inbounds.mtproto.domainHint")}>
+          <input id="mtproto-domain" className="input mono" value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="www.cloudflare.com" />
+        </Field>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="primary" loading={save.isPending} disabled={!port || !domain} onClick={() => save.mutate({ port: Number(port), domain })}>
+          {t("common.save")}
+        </Button>
+        <Button loading={regenerate.isPending} onClick={() => regenerate.mutate()}>
+          <RefreshCw size={16} aria-hidden /> {t("inbounds.mtproto.regenerate")}
+        </Button>
+      </div>
+      {data.link ? (
+        <div className="panel-soft mt-4 p-3">
+          <div className="mb-2 text-xs font-semibold text-[var(--ink-500)]">{t("inbounds.mtproto.link")}</div>
+          <code className="mono block w-full break-all">{data.link}</code>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => void copy(data.link, t("inbounds.mtproto.copied"))}>
+              <Copy size={16} aria-hidden /> {t("common.copyLink")}
+            </Button>
+            <a className="btn btn-glass btn-sm" href={data.link} target="_blank" rel="noreferrer">
+              <Send size={16} aria-hidden /> {t("inbounds.mtproto.open")}
+            </a>
+          </div>
+        </div>
+      ) : null}
+      {data.status === "error" ? <p className="mt-3 text-[13px] text-[var(--berry-600)]">{t("inbounds.mtproto.error")}</p> : null}
+    </section>
   );
 }
 

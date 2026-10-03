@@ -22,6 +22,7 @@ import (
 	"prototip/internal/panel/billing"
 	"prototip/internal/panel/dnscheck"
 	"prototip/internal/panel/domain"
+	"prototip/internal/panel/mtproto"
 	"prototip/internal/panel/nodesync"
 	"prototip/internal/panel/panelimport"
 	"prototip/internal/panel/secure"
@@ -66,6 +67,7 @@ type Deps struct {
 	}
 	// Telegram is the subscription owners' bot.
 	Telegram *tgbot.Bot
+	MTProto  *mtproto.Manager
 	// Backups send the database to the admin's Telegram chat; nil in tests.
 	Backups *tgbackup.Service
 	// Importer brings users over from another panel; nil in tests that do not need it.
@@ -192,6 +194,7 @@ func New(d Deps) (http.Handler, huma.API, error) {
 	h.registerUsers()
 	h.registerCatalog()
 	h.registerInbounds()
+	h.registerMTProto()
 	h.registerTargets()
 	h.registerStats()
 	h.registerMetrics()

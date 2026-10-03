@@ -135,11 +135,11 @@ mod tests {
         let mut e = EnvFile::parse("x".into(), "PROTOTIP_IMAGE=prototip:0.3.8\n# note\nPANEL_PORT=21355\nPROTOTIP_UFW=1\n");
         assert_eq!(e.get("PROTOTIP_IMAGE"), Some("prototip:0.3.8"));
         assert_eq!(e.get("PROTOTIP"), None);
-        e.set("PROTOTIP_IMAGE", "ghcr.io/miroshka000/prototip@sha256:abc").unwrap();
+        e.set("PROTOTIP_IMAGE", "ghcr.io/milky182828/prototip@sha256:abc").unwrap();
         e.set("PROTOTIP_VERSION", "0.3.9").unwrap();
         assert_eq!(
             e.render(),
-            "PROTOTIP_IMAGE=ghcr.io/miroshka000/prototip@sha256:abc\n# note\nPANEL_PORT=21355\nPROTOTIP_UFW=1\nPROTOTIP_VERSION=0.3.9\n"
+            "PROTOTIP_IMAGE=ghcr.io/milky182828/prototip@sha256:abc\n# note\nPANEL_PORT=21355\nPROTOTIP_UFW=1\nPROTOTIP_VERSION=0.3.9\n"
         );
         assert!(e.set("X", "a\nb").is_err());
     }
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn values_compose_reads_as_written() {
         let mut e = EnvFile::parse("x".into(), "");
-        for ok in ["ghcr.io/miroshka000/prototip@sha256:ab12", "0.4.4-rc.1+b2", "prototip1.AbC_-9", "21355", ""] {
+        for ok in ["ghcr.io/milky182828/prototip@sha256:ab12", "0.4.4-rc.1+b2", "prototip1.AbC_-9", "21355", ""] {
             e.set("K", ok).unwrap();
         }
         for bad in ["a$HOME", "${X}", "a b", "a #b", "\"q\"", "'q'", "a`b", "a\\b", "a;b", "a\nb", "img?x=1", "a&b", "a%20b"] {

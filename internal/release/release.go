@@ -22,7 +22,7 @@ import (
 const PublicKey = "Z3wSIPBSaJxh5CsGO8eINI0aM0kyrQ46EcJSNeH85W8="
 
 // Repo is where releases are published.
-const Repo = "Miroshka000/prototip"
+const Repo = "Milky182828/prototip"
 
 // InstallCommand installs prototip from the latest release; run on the server.
 const InstallCommand = "curl -fsSL https://github.com/" + Repo + "/releases/latest/download/install.sh | sudo bash"
@@ -37,7 +37,7 @@ type Manifest struct {
 	Version      string            `json:"version"`
 	MinInstaller string            `json:"min_installer,omitempty"`
 	Published    time.Time         `json:"published"`
-	Image        string            `json:"image" doc:"Образ в GitHub Packages, например ghcr.io/miroshka000/prototip"`
+	Image        string            `json:"image" doc:"Образ в GitHub Packages, например ghcr.io/milky182828/prototip"`
 	Digest       string            `json:"digest" doc:"sha256 multi-arch образа"`
 	Installer    map[string]Asset  `json:"installer" doc:"Установщик по архитектуре: x86_64, aarch64"`
 	Notes        map[string]string `json:"notes" doc:"Что изменилось, markdown по языкам: en, ru"`

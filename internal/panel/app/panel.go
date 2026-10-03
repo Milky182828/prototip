@@ -26,6 +26,7 @@ import (
 	"prototip/internal/panel/dnscheck"
 	"prototip/internal/panel/domain"
 	"prototip/internal/panel/infraalerts"
+	"prototip/internal/panel/mtproto"
 	"prototip/internal/panel/nodesync"
 	"prototip/internal/panel/panelimport"
 	"prototip/internal/panel/promo"
@@ -47,6 +48,7 @@ type Panel struct {
 	Nodes     *nodesync.Manager
 	Tuner     *autotune.Tuner // nil without nodes
 	Telegram  *tgbot.Bot
+	MTProto   *mtproto.Manager
 	Billing   *billing.Service
 	Alerts    *infraalerts.Monitor
 	Backups   *tgbackup.Service
@@ -89,7 +91,7 @@ type Options struct {
 	// one is not served; nil where the panel runs no server (tests, the CLI).
 	SubPort      func(port int) error
 	SubPortError func() string
-	// DataDir stores server-side state used by addons, backups and imports.
+	// DataDir stores panel-managed service configuration and server-side state.
 	DataDir string
 	// WarpAPI is Cloudflare's WARP client API; "" is the real one.
 	WarpAPI string
@@ -149,6 +151,8 @@ func NewPanel(st *store.Store, o Options) (*Panel, error) {
 		dryRun = p.Nodes
 	}
 	deps.Inbounds = domain.NewInbounds(st, dryRun, o.Now)
+	p.MTProto = mtproto.New(st, set, o.DataDir)
+	deps.MTProto = p.MTProto
 	// A REALITY target given by name is looked up when it is saved: the node dials it past the
 	// rules that fence its users in.
 	deps.Resolve = o.Resolve
@@ -381,7 +385,7 @@ func (p *Panel) Run(ctx context.Context) {
 	if p.Tuner != nil {
 		workers = append(workers, p.Tuner.Run)
 	}
-	workers = append(workers, p.Telegram.Run, p.Billing.Run, p.Alerts.Run, p.Backups.Run, p.Importer.Run,
+	workers = append(workers, p.Telegram.Run, p.MTProto.Run, p.Billing.Run, p.Alerts.Run, p.Backups.Run, p.Importer.Run,
 		func(ctx context.Context) {
 			every(ctx, 5*time.Second, func() {
 				if _, err := p.Apply(ctx); err != nil {

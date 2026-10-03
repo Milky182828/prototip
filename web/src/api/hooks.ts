@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, rawApi, unwrap, type Schemas, type User } from "./client";
+import { api, rawApi, unwrap, type MTProtoView, type Schemas, type User } from "./client";
 
 export const qk = {
   me: ["me"] as const,
@@ -10,6 +10,7 @@ export const qk = {
   boundDevices: (id: number) => ["users", "bound", id] as const,
   tariffs: ["tariffs"] as const,
   inbounds: ["inbounds"] as const,
+  mtproto: ["mtproto"] as const,
   presets: ["presets"] as const,
   overview: ["overview"] as const,
   traffic: (range: string) => ["traffic", range] as const,
@@ -93,6 +94,14 @@ export function useTariffs() {
 
 export function useInbounds() {
   return useQuery({ queryKey: qk.inbounds, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/inbounds", { signal })), refetchInterval: 10_000 });
+}
+
+export function useMTProto() {
+  return useQuery({
+    queryKey: qk.mtproto,
+    queryFn: ({ signal }) => rawApi("/api/v1/mtproto", { signal }) as Promise<MTProtoView>,
+    refetchInterval: 5_000,
+  });
 }
 
 export function usePresets() {

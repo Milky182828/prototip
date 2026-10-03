@@ -348,7 +348,9 @@
       "promo_invalid_value": "Promo code settings are invalid",
       "promo_late_refund_failed": "A late promo payment could not be refunded automatically. Check the provider and refund it manually if needed.",
       "bad_value": "Value must be positive and limits/lifetimes cannot be negative",
-      "bad_tariff_ids": "Tariff IDs must be positive numbers"
+      "bad_tariff_ids": "Tariff IDs must be positive numbers",
+      "mtproto_port_invalid": "MTProto port must be between 1024 and 65535",
+      "mtproto_domain_invalid": "Enter a valid camouflage domain, not an IP address"
     },
     "acme": {
       "port80_busy": "Port 80 is used by another program — Let's Encrypt checks the server through it",
@@ -813,7 +815,28 @@
     "obfs": "Obfuscation",
     "obfsHint": "Every app with Hysteria2 knows Salamander. Gecko also cuts the handshake into pieces of random size, against DPI that tells QUIC by packet sizes.",
     "obfsGeckoHint": "Only apps on mihomo core 1.19.26+ that say so (Koala Clash 1.4+, ClashFest 1.2+, SlothClash 0.9.4+ and others) get Gecko. The rest do not get this protocol, so keep a plain Hysteria2 next to it.",
-    "portHopHint": "A range such as 20000-30000 works too: clients hop between the ports, which makes blocking one port useless. Open the range over UDP in the server firewall."
+    "portHopHint": "A range such as 20000-30000 works too: clients hop between the ports, which makes blocking one port useless. Open the range over UDP in the server firewall.",
+    "mtproto": {
+      "title": "MTProto for Telegram",
+      "subtitle": "A separate MTG Telegram proxy. The secret and connection link are generated automatically.",
+      "enabled": "Enable MTProto",
+      "port": "TCP port",
+      "domain": "Camouflage domain",
+      "domainHint": "Fake TLS domain. Changing it regenerates the secret.",
+      "regenerate": "New secret",
+      "regenerated": "MTProto secret regenerated",
+      "saved": "MTProto saved",
+      "link": "Connection link",
+      "copied": "MTProto link copied",
+      "open": "Open in Telegram",
+      "error": "MTProto failed to start. Check the mtproto container logs.",
+      "status": {
+        "stopped": "off",
+        "starting": "starting",
+        "running": "running",
+        "error": "error"
+      }
+    }
   },
   "settings": {
     "subtitle": "Server address, subscription look and sign-in security",

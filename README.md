@@ -9,8 +9,8 @@
 
 **A fast, beautiful VPN panel on the [mihomo](https://github.com/MetaCubeX/mihomo) core — one command to install, nothing to babysit.**
 
-[![Release](https://img.shields.io/github/v/release/Miroshka000/prototip?color=f07a2e&label=release&style=flat-square)](https://github.com/Miroshka000/prototip/releases)
-[![Image](https://img.shields.io/badge/ghcr.io-miroshka000%2Fprototip-2b8c9e?style=flat-square&logo=docker&logoColor=white)](https://github.com/Miroshka000/prototip/pkgs/container/prototip)
+[![Release](https://img.shields.io/github/v/release/Milky182828/prototip?color=f07a2e&label=release&style=flat-square)](https://github.com/Milky182828/prototip/releases)
+[![Image](https://img.shields.io/badge/ghcr.io-milky182828%2Fprototip-2b8c9e?style=flat-square&logo=docker&logoColor=white)](https://github.com/Milky182828/prototip/pkgs/container/prototip)
 [![License](https://img.shields.io/badge/license-GPL--3.0-2f9e6b?style=flat-square)](LICENSE)
 [![mihomo](https://img.shields.io/badge/core-mihomo%201.19.31-9e8eff?style=flat-square)](https://github.com/MetaCubeX/mihomo)
 
@@ -25,7 +25,7 @@
 On a fresh Ubuntu 22.04+ or Debian 12+ server (amd64 or arm64):
 
 ```bash
-curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/Milky182828/prototip/releases/latest/download/install.sh | sudo bash
 ```
 
 The installer asks for the panel language and an optional domain, checks that the domain points to the server, installs Docker if needed, picks REALITY camouflage sites next to your server and prints your admin link. Run `prototip` again at any time for the management menu.
@@ -33,7 +33,7 @@ The installer asks for the panel language and an optional domain, checks that th
 A node for an existing panel: the panel's **Nodes** page (or `prototip node add`) gives the command with its key:
 
 ```bash
-curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/install.sh | sudo bash -s -- --join KEY
+curl -fsSL https://github.com/Milky182828/prototip/releases/latest/download/install.sh | sudo bash -s -- --join KEY
 ```
 
 Without questions, for scripts: `… | sudo bash -s -- --yes --lang en --domain vpn.example.com --email you@example.com` (all flags: `prototip install --help`).

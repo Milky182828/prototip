@@ -839,7 +839,7 @@ mod tests {
     fn an_install_that_stopped_is_continued_not_refused_and_not_redone() {
         let root = tmpdir("resume");
         let mut p = plan();
-        write_files_in(&root, &p, "ghcr.io/miroshka000/prototip@sha256:aa", "0.4.4", None).unwrap();
+        write_files_in(&root, &p, "ghcr.io/milky182828/prototip@sha256:aa", "0.4.4", None).unwrap();
         assert!(unfinished(&root), "the marker is there from the first file");
         let env = EnvFile::load(root.join(".env")).unwrap();
         assert_eq!(env.get("PANEL_PORT"), Some("21355"));
@@ -850,7 +850,7 @@ mod tests {
         p = Plan::from(&Options { port: Some(30000), ..Default::default() }).resumed(&env);
         assert!(p.resume);
         assert_eq!(p.port, 21355);
-        write_files_in(&root, &p, "ghcr.io/miroshka000/prototip@sha256:bb", "0.4.5", None).unwrap();
+        write_files_in(&root, &p, "ghcr.io/milky182828/prototip@sha256:bb", "0.4.5", None).unwrap();
         let again = EnvFile::load(root.join(".env")).unwrap();
         assert_eq!((again.get("PANEL_PORT"), again.get("PROTOTIP_VERSION")), (Some("21355"), Some("0.4.5")));
         // done: the last step removes the marker, and the server is an installed one
@@ -865,7 +865,7 @@ mod tests {
         let root = tmpdir("resume-node");
         let key = "prototip1.AbC_-9";
         let p = Plan::from(&Options { join: Some(key.into()), ..Default::default() });
-        write_files_in(&root, &p, "ghcr.io/miroshka000/prototip", "0.4.4", Some(25305)).unwrap();
+        write_files_in(&root, &p, "ghcr.io/milky182828/prototip", "0.4.4", Some(25305)).unwrap();
         let env = EnvFile::load(root.join(".env")).unwrap();
         assert_eq!((env.get("PROTOTIP_MODE"), env.get("NODE_API_PORT"), env.get("PROTOTIP_NODE_JOIN")), (Some("node"), Some("25305"), Some(key)));
         assert_eq!(fs::read_to_string(root.join("compose.yaml")).unwrap(), docker::NODE_COMPOSE);

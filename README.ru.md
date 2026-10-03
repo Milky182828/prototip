@@ -9,8 +9,8 @@
 
 **Быстрая и красивая VPN-панель на ядре [mihomo](https://github.com/MetaCubeX/mihomo): ставится одной командой и не требует присмотра.**
 
-[![Релиз](https://img.shields.io/github/v/release/Miroshka000/prototip?color=f07a2e&label=релиз&style=flat-square)](https://github.com/Miroshka000/prototip/releases)
-[![Образ](https://img.shields.io/badge/ghcr.io-miroshka000%2Fprototip-2b8c9e?style=flat-square&logo=docker&logoColor=white)](https://github.com/Miroshka000/prototip/pkgs/container/prototip)
+[![Релиз](https://img.shields.io/github/v/release/Milky182828/prototip?color=f07a2e&label=релиз&style=flat-square)](https://github.com/Milky182828/prototip/releases)
+[![Образ](https://img.shields.io/badge/ghcr.io-milky182828%2Fprototip-2b8c9e?style=flat-square&logo=docker&logoColor=white)](https://github.com/Milky182828/prototip/pkgs/container/prototip)
 [![Лицензия](https://img.shields.io/badge/лицензия-GPL--3.0-2f9e6b?style=flat-square)](LICENSE)
 [![mihomo](https://img.shields.io/badge/ядро-mihomo%201.19.31-9e8eff?style=flat-square)](https://github.com/MetaCubeX/mihomo)
 
@@ -25,7 +25,7 @@
 На чистом сервере с Ubuntu 22.04+ или Debian 12+ (amd64 или arm64):
 
 ```bash
-curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/Milky182828/prototip/releases/latest/download/install.sh | sudo bash
 ```
 
 Установщик по шагам:
@@ -39,7 +39,7 @@ curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/inst
 Нода для уже работающей панели: страница **Ноды** в панели (или `prototip node add`) выдаёт команду с ключом:
 
 ```bash
-curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/install.sh | sudo bash -s -- --join КЛЮЧ
+curl -fsSL https://github.com/Milky182828/prototip/releases/latest/download/install.sh | sudo bash -s -- --join КЛЮЧ
 ```
 
 Без вопросов, для скриптов: `… | sudo bash -s -- --yes --lang ru --domain vpn.example.com --email you@example.com` (все флаги: `prototip install --help`).

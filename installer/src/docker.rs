@@ -88,6 +88,13 @@ services:
       timeout: 5s
       retries: 3
 
+  mtproto:
+    <<: *hardening
+    entrypoint: ["/usr/local/bin/mtproto-supervisor"]
+    volumes: ["./data/panel:/data/panel"]
+    mem_limit: 128m
+    pids_limit: 128
+
   postgres:
     image: "#,
     postgres_image!(),
@@ -614,7 +621,7 @@ mod tests {
     #[test]
     fn pull_progress() {
         let mut p = PullProgress::default();
-        assert_eq!(p.feed("0.3.9: Pulling from miroshka000/prototip"), None);
+        assert_eq!(p.feed("0.3.9: Pulling from milky182828/prototip"), None);
         assert_eq!(p.feed("4f4fb700ef54: Pulling fs layer"), Some(0.0));
         assert_eq!(p.feed("a1b2c3d4e5f6: Already exists"), Some(0.5));
         assert_eq!(p.feed("4f4fb700ef54: Download complete"), Some(0.5));

@@ -9,6 +9,14 @@ export type Inbound = Schemas["InboundView"];
 export type Preset = Schemas["Info"];
 export type Overview = Schemas["OverviewOutputBody"];
 export type SettingsView = Schemas["SettingsView"];
+export type MTProtoView = {
+  enabled: boolean;
+  port: number;
+  domain: string;
+  secret: string;
+  link: string;
+  status: "stopped" | "starting" | "running" | "error";
+};
 export type TrafficPoint = Schemas["TrafficPoint"];
 export type UserState = User["state"];
 

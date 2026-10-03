@@ -13,11 +13,11 @@ use serde::Deserialize;
 /// The public half of the release signing key, the same as internal/release.PublicKey.
 pub const PUBLIC_KEY: &str = "Z3wSIPBSaJxh5CsGO8eINI0aM0kyrQ46EcJSNeH85W8=";
 
-pub const REPO: &str = "Miroshka000/prototip";
+pub const REPO: &str = "Milky182828/prototip";
 
 /// The project's own namespace on GitHub Packages: ghcr.io/<owner of REPO in lowercase>/,
 /// as internal/release checks it.
-const IMAGE_PREFIX: &str = "ghcr.io/miroshka000/";
+const IMAGE_PREFIX: &str = "ghcr.io/milky182828/";
 
 /// Installs a node of an existing panel on a fresh server (internal/release.JoinCommand).
 pub fn join_command(key: &str) -> String {
@@ -201,7 +201,7 @@ mod tests {
 
     fn manifest(version: &str, image: &str) -> Vec<u8> {
         format!(
-            r#"{{"version":"{version}","published":"2026-09-29T10:00:00Z","image":"{image}","digest":"sha256:{}","installer":{{"x86_64":{{"url":"https://github.com/Miroshka000/prototip/releases/download/v{version}/prototip-x86_64","sha256":"{}"}}}},"notes":{{"en":"- x"}}}}"#,
+            r#"{{"version":"{version}","published":"2026-09-29T10:00:00Z","image":"{image}","digest":"sha256:{}","installer":{{"x86_64":{{"url":"https://github.com/Milky182828/prototip/releases/download/v{version}/prototip-x86_64","sha256":"{}"}}}},"notes":{{"en":"- x"}}}}"#,
             "a".repeat(64),
             "b".repeat(64)
         )
@@ -212,10 +212,10 @@ mod tests {
     fn signed_manifests_only() {
         let signer = SigningKey::from_bytes(&[7; 32]);
         let key = signer.verifying_key();
-        let data = manifest("0.3.9", "ghcr.io/miroshka000/prototip");
+        let data = manifest("0.3.9", "ghcr.io/milky182828/prototip");
         let sig = STANDARD.encode(signer.sign(&data).to_bytes());
         let m = parse(&data, &format!("{sig}\n"), &key).unwrap();
-        assert_eq!(m.reference(), format!("ghcr.io/miroshka000/prototip@sha256:{}", "a".repeat(64)));
+        assert_eq!(m.reference(), format!("ghcr.io/milky182828/prototip@sha256:{}", "a".repeat(64)));
         assert_eq!(m.installer["x86_64"].sha256, "b".repeat(64));
 
         let mut tampered = data.clone();
@@ -236,7 +236,7 @@ mod tests {
     fn new_fields_do_not_break_old_installers() {
         let signer = SigningKey::from_bytes(&[7; 32]);
         let key = signer.verifying_key();
-        let text = String::from_utf8(manifest("0.4.4", "ghcr.io/miroshka000/prototip")).unwrap();
+        let text = String::from_utf8(manifest("0.4.4", "ghcr.io/milky182828/prototip")).unwrap();
         let extended = text.replacen("{\"version\"", "{\"min_installer\":\"0.4.4\",\"channel\":\"stable\",\"version\"", 1).replacen(
             "\"sha256\":",
             "\"size\":123,\"sha256\":",
@@ -261,19 +261,19 @@ mod tests {
         let signer = SigningKey::from_bytes(&[7; 32]);
         let key = signer.verifying_key();
         let accept = |data: &[u8]| parse(data, &STANDARD.encode(signer.sign(data).to_bytes()), &key).is_ok();
-        assert!(accept(&manifest("0.4.4", "ghcr.io/miroshka000/prototip")));
+        assert!(accept(&manifest("0.4.4", "ghcr.io/milky182828/prototip")));
         for bad in [
             "ghcr.io/someone-else/prototip",
-            "ghcr.io/miroshka000/../x",
-            "ghcr.io/miroshka000/Mi kan",
-            "ghcr.io/miroshka000/",
-            "ghcr.io/miroshka000/m$x",
+            "ghcr.io/milky182828/../x",
+            "ghcr.io/milky182828/Mi kan",
+            "ghcr.io/milky182828/",
+            "ghcr.io/milky182828/m$x",
         ] {
             assert!(!accept(&manifest("0.4.4", bad)), "{bad}");
         }
-        let short_hash = String::from_utf8(manifest("0.4.4", "ghcr.io/miroshka000/prototip")).unwrap().replace(&"b".repeat(64), "bb");
+        let short_hash = String::from_utf8(manifest("0.4.4", "ghcr.io/milky182828/prototip")).unwrap().replace(&"b".repeat(64), "bb");
         assert!(!accept(short_hash.as_bytes()));
-        let plain_http = String::from_utf8(manifest("0.4.4", "ghcr.io/miroshka000/prototip")).unwrap().replace("https://", "http://");
+        let plain_http = String::from_utf8(manifest("0.4.4", "ghcr.io/milky182828/prototip")).unwrap().replace("https://", "http://");
         assert!(!accept(plain_http.as_bytes()));
     }
 

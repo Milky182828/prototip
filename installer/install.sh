@@ -1,7 +1,7 @@
 #!/bin/sh
 # prototip: one-line install.
 #
-#   curl -fsSL https://github.com/Miroshka000/prototip/releases/latest/download/install.sh | sudo bash
+#   curl -fsSL https://github.com/Milky182828/prototip/releases/latest/download/install.sh | sudo bash
 #
 # Downloads the release manifest and its signature, checks the signature against the
 # release key built into this script, then downloads the installer for this server's
@@ -16,7 +16,7 @@
 # after that is checked by the installer against the key it carries.
 set -eu
 
-REPO="Miroshka000/prototip"
+REPO="Milky182828/prototip"
 BASE="https://github.com/$REPO/releases/latest/download"
 
 # The public half of the key that signs every release's manifest.json: the same key as
