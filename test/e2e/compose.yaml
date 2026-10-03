@@ -1,0 +1,44 @@
+name: prototip-e2e
+
+x-client: &client
+  image: metacubex/mihomo:v1.19.31
+  command: ["-d", "/tmp/mihomo", "-f", "/work/clients/client.yaml"]
+  volumes: ["work:/work:ro"]
+  depends_on: [node, target]
+
+services:
+  node:
+    build: {context: ../.., dockerfile: test/e2e/Dockerfile}
+    command: ["prototip-node"]
+    environment:
+      PROTOTIP_DATA_DIR: /data
+      PROTOTIP_NODE_SOCKET: /run/prototip/node.sock
+      PROTOTIP_DEVICE_RELEASE: 3s
+      # the test target lives on a private docker network
+      PROTOTIP_ALLOW_PRIVATE: "true"
+    volumes: ["run:/run/prototip", "nodedata:/data"]
+
+  target:
+    build: {context: ../.., dockerfile: test/e2e/Dockerfile}
+    command: ["target"]
+
+  client-a: *client
+  client-b: *client
+
+  driver:
+    image: golang:1.27
+    working_dir: /src
+    command: ["sleep", "infinity"]
+    volumes:
+      - "../..:/src:ro"
+      - "work:/work"
+      - "run:/run/prototip"
+      - "prototip-gomod:/go/pkg/mod"
+      - "prototip-gocache:/root/.cache/go-build"
+
+volumes:
+  run: {}
+  nodedata: {}
+  work: {}
+  prototip-gomod: {external: true}
+  prototip-gocache: {external: true}

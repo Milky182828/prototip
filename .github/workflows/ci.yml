@@ -1,0 +1,143 @@
+name: ci
+
+# Pull requests only: dev is where work happens, a pull request into main is where it is
+# checked. Nothing here publishes; releases come from tags (release.yml).
+#
+# Every action is pinned to a commit (the comment is the version it was), so that a moved
+# tag cannot change what runs; dependabot (.github/dependabot.yml) proposes the updates.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  panel:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: prototip_test
+          POSTGRES_PASSWORD: prototip_test
+          POSTGRES_DB: prototip_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U prototip_test -d prototip_test"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      PROTOTIP_TEST_DATABASE_URL: postgres://prototip_test:prototip_test@localhost:5432/prototip_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: web
+        working-directory: web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec tsc -b
+          pnpm build
+      # The repository key is trusted only with the fingerprint the PostgreSQL project
+      # publishes (wiki.postgresql.org/wiki/Apt), and only as the one key in the file.
+      - name: PostgreSQL 18 backup tools
+        run: |
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$RUNNER_TEMP/pgdg.asc"
+          fpr=$(gpg --show-keys --with-colons "$RUNNER_TEMP/pgdg.asc" | awk -F: '$1 == "pub" {n++} $1 == "fpr" && !f {f = $10} END {if (n == 1) print f}')
+          if [ "$fpr" != B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 ]; then
+            echo "::error::unexpected PGDG signing key: ${fpr:-not exactly one key}"
+            exit 1
+          fi
+          sudo install -D -m 644 "$RUNNER_TEMP/pgdg.asc" /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+          echo /usr/lib/postgresql/18/bin >> "$GITHUB_PATH"
+      # Every package, with the race detector: the panel's background writers, sync and
+      # bot share state across goroutines. -race needs cgo, and the runner has gcc.
+      - name: go
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          test -z "$(gofmt -l internal cmd test)"
+          go vet ./...
+          go test -race ./...
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
+  installer:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: installer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Pinned by commit, an action that takes its toolchain from the ref needs it said.
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: installer
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      - run: cargo build --locked
+      # The updater takes its lock in /run, as on a server: the stand runs as root.
+      - run: sudo env PROTOTIP_INSTALLER_TEST=1 sh test-upgrade.sh
+
+  # The installer's dependencies against the RustSec advisory database. A new advisory
+  # fails the check on the next pull request; cargo audit only reads Cargo.lock.
+  installer-audit:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: installer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: installer
+          key: audit
+      - run: cargo install --locked --version 0.22.2 cargo-audit
+      - run: cargo audit --deny warnings
+
+  image:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # arm64 too: a wrong-architecture binary fails the build (see the Dockerfile).
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          build-args: VERSION=ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

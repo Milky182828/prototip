@@ -1,0 +1,268 @@
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, rawApi, unwrap, type Schemas, type User } from "./client";
+
+export const qk = {
+  me: ["me"] as const,
+  users: ["users"] as const,
+  user: (id: number) => ["users", "one", id] as const,
+  userTraffic: (id: number) => ["users", "traffic", id] as const,
+  devices: (id: number) => ["users", "devices", id] as const,
+  boundDevices: (id: number) => ["users", "bound", id] as const,
+  tariffs: ["tariffs"] as const,
+  inbounds: ["inbounds"] as const,
+  presets: ["presets"] as const,
+  overview: ["overview"] as const,
+  traffic: (range: string) => ["traffic", range] as const,
+  node: ["node"] as const,
+  nodes: ["nodes"] as const,
+  settings: ["settings"] as const,
+  sessions: ["sessions"] as const,
+  telegram: ["telegram"] as const,
+  apiKeys: ["api-keys"] as const,
+  payments: ["payments"] as const,
+  paymentSettings: ["payment-settings"] as const,
+  addons: ["addons"] as const,
+  warp: (node: number) => ["warp", node] as const,
+  cascade: (node: number) => ["cascade", node] as const,
+  pools: ["pools"] as const,
+  userPools: (id: number) => ["users", "pools", id] as const,
+  packages: ["packages"] as const,
+  promocodes: ["promocodes"] as const,
+  promocodeRedemptions: ["promocodes", "redemptions"] as const,
+  userGrants: (id: number) => ["users", "grants", id] as const,
+};
+
+export const meQuery = {
+  queryKey: qk.me,
+  queryFn: ({ signal }: { signal: AbortSignal }) => unwrap(api.GET("/api/v1/auth/me", { signal })),
+  staleTime: 60_000,
+  retry: false,
+};
+
+type UsersFilter = { state: "all" | User["state"]; q: string };
+
+/** The users page lists everyone it can (the API's cap); a card that shows a few asks for just those. */
+const USERS_MAX = 500;
+
+export function useUsers(f: UsersFilter, o: { limit?: number; refetchInterval?: number } = {}) {
+  const limit = o.limit ?? USERS_MAX;
+  return useQuery({
+    queryKey: [...qk.users, "list", f, limit],
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users", { params: { query: { state: f.state, q: f.q || undefined, limit } }, signal })),
+    placeholderData: keepPreviousData,
+    refetchInterval: o.refetchInterval ?? 10_000,
+  });
+}
+
+export function useUser(id: number | undefined) {
+  return useQuery({
+    queryKey: qk.user(id ?? 0),
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users/{id}", { params: { path: { id: id! } }, signal })),
+    enabled: !!id,
+    refetchInterval: 5_000,
+  });
+}
+
+export function useUserTraffic(id: number) {
+  return useQuery({
+    queryKey: qk.userTraffic(id),
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users/{id}/traffic", { params: { path: { id }, query: { range: "30d" } }, signal })),
+  });
+}
+
+export function useDevices(id: number) {
+  return useQuery({
+    queryKey: qk.devices(id),
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users/{id}/devices", { params: { path: { id } }, signal })),
+    refetchInterval: 10_000,
+  });
+}
+
+/** Devices bound to the subscription (each with keys of its own). */
+export function useBoundDevices(id: number) {
+  return useQuery({
+    queryKey: qk.boundDevices(id),
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users/{id}/bound-devices", { params: { path: { id } }, signal })),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useTariffs() {
+  return useQuery({ queryKey: qk.tariffs, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/tariffs", { signal })) });
+}
+
+export function useInbounds() {
+  return useQuery({ queryKey: qk.inbounds, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/inbounds", { signal })), refetchInterval: 10_000 });
+}
+
+export function usePresets() {
+  return useQuery({ queryKey: qk.presets, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/presets", { signal })), staleTime: Infinity });
+}
+
+export function useOverview() {
+  return useQuery({ queryKey: qk.overview, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/stats/overview", { signal })), refetchInterval: 10_000 });
+}
+
+export function useServerTraffic(range: "24h" | "7d" | "30d") {
+  return useQuery({
+    queryKey: qk.traffic(range),
+    queryFn: ({ signal }) => unwrap(api.GET("/api/v1/stats/traffic", { params: { query: { range } }, signal })),
+    placeholderData: keepPreviousData,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useNode() {
+  return useQuery({ queryKey: qk.node, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/node", { signal })), refetchInterval: 5_000 });
+}
+
+export function useNodes() {
+  return useQuery({ queryKey: qk.nodes, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/nodes", { signal })), refetchInterval: 10_000 });
+}
+
+/** Payment settings: also whether selling is on, which shows Payments in the menu. */
+export function usePaymentSettings() {
+  return useQuery({ queryKey: qk.paymentSettings, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/payments/settings", { signal })) });
+}
+
+export function useSettings() {
+  return useQuery({ queryKey: qk.settings, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/settings", { signal })) });
+}
+
+
+/** Mutations that change a user refresh every user-related view. */
+export function useUserMutation<TArgs, TResult>(fn: (args: TArgs) => Promise<TResult>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: qk.users });
+      void qc.invalidateQueries({ queryKey: qk.overview });
+    },
+  });
+}
+
+export const userActions = {
+  create: (body: Schemas["CreateUserInputBody"]) => unwrap(api.POST("/api/v1/users", { body })),
+  update: ({ id, body }: { id: number; body: Schemas["PatchUserInputBody"] }) =>
+    unwrap(api.PATCH("/api/v1/users/{id}", { params: { path: { id } }, body })),
+  extend: ({ id, ...body }: { id: number } & Schemas["ExtendInputBody"]) => unwrap(api.POST("/api/v1/users/{id}/extend", { params: { path: { id } }, body })),
+  reset: (id: number) => unwrap(api.POST("/api/v1/users/{id}/reset-traffic", { params: { path: { id } } })),
+  reissue: (id: number) => unwrap(api.POST("/api/v1/users/{id}/reissue", { params: { path: { id } } })),
+  remove: (id: number) => unwrap(api.DELETE("/api/v1/users/{id}", { params: { path: { id } } })),
+  bulk: (body: Schemas["BulkInputBody"]) => unwrap(api.POST("/api/v1/users/bulk", { body })),
+  unbindDevice: ({ id, device }: { id: number; device: number }) =>
+    unwrap(api.DELETE("/api/v1/users/{id}/bound-devices/{device}", { params: { path: { id, device } } })),
+};
+
+/** One paid period: a month up to the billing day, or 30 days without one. */
+export const onePeriod = (u: Pick<User, "billing_day">): Schemas["ExtendInputBody"] => (u.billing_day != null ? { months: 1 } : { days: 30 });
+
+export function usePools() {
+  return useQuery({ queryKey: qk.pools, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/pools", { signal })) });
+}
+
+export function usePackages() {
+  return useQuery({ queryKey: qk.packages, queryFn: ({ signal }) => unwrap(api.GET("/api/v1/packages", { signal })) });
+}
+
+export function useUserGrants(id: number) {
+  return useQuery({ queryKey: qk.userGrants(id), queryFn: ({ signal }) => unwrap(api.GET("/api/v1/users/{id}/grants", { params: { path: { id } }, signal })) });
+}
+
+
+export type PromoCode = {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  type: "days" | "traffic" | "percent" | "fixed";
+  value: number;
+  currency: string;
+  starts_at?: string;
+  ends_at?: string;
+  max_uses?: number;
+  used_count: number;
+  per_user_limit: number;
+  discount_ttl: number;
+  min_order: number;
+  max_discount: number;
+  tariff_ids: number[];
+  pool_id?: number;
+  first_purchase_only: boolean;
+  new_users_only: boolean;
+  enabled: boolean;
+  status: string;
+  created_at: string;
+  created_by?: number;
+};
+
+export type PromoRedemption = {
+  id: number;
+  promo_id: number;
+  user_id?: number;
+  tg_id: number;
+  payment_id?: number;
+  status: string;
+  redeemed_at: string;
+  expires_at?: string;
+  days: number;
+  bytes: number;
+  discount_amount: number;
+  original_amount: number;
+  final_amount: number;
+  currency: string;
+  code: string;
+};
+
+type PromoBody = {
+  code: string; name: string; description: string; type: PromoCode["type"]; value: number; currency: string;
+  starts_at?: number; ends_at?: number; max_uses?: number; per_user_limit: number; discount_ttl: number;
+  min_order: number; max_discount: number; tariff_ids: number[]; pool_id?: number; first_purchase_only: boolean; new_users_only: boolean; enabled: boolean;
+};
+
+type PromoList = { items: PromoCode[]; total: number };
+type PromoRedemptionList = { items: PromoRedemption[]; total: number };
+
+export function usePromocodes() {
+  return useQuery({
+    queryKey: qk.promocodes,
+    queryFn: ({ signal }) => rawJson<PromoList>("/api/v1/promocodes?limit=100", { signal }),
+  });
+}
+
+export function usePromoRedemptions() {
+  return useQuery({
+    queryKey: qk.promocodeRedemptions,
+    queryFn: ({ signal }) => rawJson<PromoRedemptionList>("/api/v1/promocodes/redemptions?limit=100", { signal }),
+  });
+}
+
+export function usePromoMutations() {
+  const queryClient = useQueryClient();
+  const refresh = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: qk.promocodes }),
+    queryClient.invalidateQueries({ queryKey: qk.promocodeRedemptions }),
+  ]);
+  const create = useMutation({
+    mutationFn: (body: PromoBody) => rawJson<PromoCode>("/api/v1/promocodes", { method: "POST", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }),
+    onSuccess: refresh,
+  });
+  const update = useMutation({
+    mutationFn: ({ id, body }: { id: number; body: PromoBody }) => rawJson<PromoCode>(`/api/v1/promocodes/${id}`, { method: "PUT", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }),
+    onSuccess: refresh,
+  });
+  const toggle = useMutation({
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) => rawJson<PromoCode>(`/api/v1/promocodes/${id}/enabled`, { method: "POST", body: JSON.stringify({ enabled }), headers: { "Content-Type": "application/json" } }),
+    onSuccess: refresh,
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => rawJson<Record<string, never>>(`/api/v1/promocodes/${id}`, { method: "DELETE" }),
+    onSuccess: refresh,
+  });
+  return { create, update, toggle, remove };
+}
+
+async function rawJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return rawApi(path, init) as Promise<T>;
+}

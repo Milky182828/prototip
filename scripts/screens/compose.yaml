@@ -1,0 +1,48 @@
+# A demo panel with its node for the README screenshots (scripts/screens/shoot.mjs).
+# Only the panel's port leaves Docker, on 127.0.0.1; the node's VPN ports stay inside.
+name: prototip-screens
+
+services:
+  node:
+    image: ${PROTOTIP_IMAGE:-prototip:dev}
+    entrypoint: ["/usr/local/bin/prototip-node"]
+    environment:
+      PROTOTIP_DATA_DIR: /data/node
+    volumes: ["data:/data", "run:/run/prototip"]
+
+  panel:
+    image: ${PROTOTIP_IMAGE:-prototip:dev}
+    depends_on:
+      node: {condition: service_started}
+      postgres: {condition: service_healthy}
+    environment:
+      PROTOTIP_DATA_DIR: /data/panel
+      PROTOTIP_PANEL_LISTEN: 0.0.0.0:2053
+      PROTOTIP_DATABASE_URL: postgresql://prototip:${PROTOTIP_TEST_POSTGRES_PASSWORD:?set demo database password}@localhost/prototip?host=/run/postgresql
+    ports: ["127.0.0.1:2090:2053"]
+    volumes: ["data:/data", "run:/run/prototip", "pg-run:/run/postgresql"]
+
+  # As the installer runs it (installer/src/docker.rs): no network, the panel talks to it
+  # over the shared unix socket with a scram-sha-256 password.
+  postgres:
+    image: postgres:18-alpine
+    network_mode: none
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      POSTGRES_USER: prototip
+      POSTGRES_DB: prototip
+      POSTGRES_PASSWORD: ${PROTOTIP_TEST_POSTGRES_PASSWORD:?set demo database password}
+      POSTGRES_INITDB_ARGS: --auth-local=scram-sha-256 --auth-host=scram-sha-256
+    command: ["postgres", "-c", "listen_addresses=", "-c", "unix_socket_directories=/run/postgresql", "-c", "unix_socket_permissions=0777"]
+    volumes: ["pg-data:/var/lib/postgresql", "pg-run:/run/postgresql"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "/run/postgresql", "-U", "prototip", "-d", "prototip"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+volumes:
+  pg-data: {}
+  pg-run: {}
+  data: {}
+  run: {}
